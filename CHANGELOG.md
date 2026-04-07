@@ -7,6 +7,55 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added - v0.5.0 (2026-04-08)
+
+#### 📊 Analytics & Visualization
+
+- **Cost Dashboard** - Visual cost analytics
+  - Real-time cost tracking
+  - Provider/model distribution charts
+  - Cost trend analysis (30 days)
+  - Budget monitoring with progress bars
+  - Cost predictions (monthly/yearly)
+  - Export to CSV/JSON
+  - Alert system
+
+- **Dashboard Features**
+  - Summary cards (total cost, tokens, calls)
+  - Pie chart for provider distribution
+  - Line chart for cost trends
+  - Bar chart for model usage
+  - Budget progress indicators
+  - Alert notifications
+  - Auto-refresh every 30 seconds
+
+- **API Endpoints**
+  - `GET /api/costs/summary` - Cost summary
+  - `GET /api/costs/recent` - Recent usage
+  - `POST /api/costs/track` - Track usage
+  - `GET /api/costs/budgets` - Budget status
+  - `POST /api/costs/budgets` - Set budget
+  - `GET /api/costs/alerts` - Get alerts
+  - `GET /api/costs/export/csv` - Export CSV
+  - `GET /api/costs/export/json` - Export JSON
+  - `GET /api/costs/charts/usage` - Chart data
+  - `GET /api/costs/analytics` - Analytics data
+
+#### 🎨 UI/UX
+
+- **Dashboard Page**
+  - Modern responsive design
+  - Bootstrap 5 styling
+  - Chart.js visualizations
+  - Color-coded status indicators
+  - Interactive charts
+
+- **Web Application**
+  - Updated main app structure
+  - `/dashboard` route for cost dashboard
+  - Template rendering
+  - Static file serving
+
 ### Added - v0.4.0 (2026-04-08)
 
 #### 🔗 Integrations

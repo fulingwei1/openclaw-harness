@@ -1,0 +1,400 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>OpenClaw Harness - 成本仪表板</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: #f5f7fa;
+            padding: 20px;
+        }
+        
+        .dashboard-header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 30px;
+            border-radius: 10px;
+            margin-bottom: 30px;
+        }
+        
+        .stat-card {
+            background: white;
+            border-radius: 10px;
+            padding: 20px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+            transition: transform 0.2s;
+        }
+        
+        .stat-card:hover {
+            transform: translateY(-5px);
+        }
+        
+        .stat-card .stat-value {
+            font-size: 32px;
+            font-weight: bold;
+            color: #667eea;
+        }
+        
+        .stat-card .stat-label {
+            color: #6c757d;
+            font-size: 14px;
+        }
+        
+        .chart-container {
+            background: white;
+            border-radius: 10px;
+            padding: 20px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+            margin-bottom: 20px;
+        }
+        
+        .alert-item {
+            background: #fff3cd;
+            border-left: 4px solid #ffc107;
+            padding: 10px 15px;
+            margin-bottom: 10px;
+            border-radius: 4px;
+        }
+        
+        .alert-item.critical {
+            background: #f8d7da;
+            border-left-color: #dc3545;
+        }
+        
+        .budget-progress {
+            height: 25px;
+            border-radius: 12px;
+        }
+        
+        .budget-progress-bar {
+            transition: width 0.5s ease;
+        }
+        
+        .export-btn {
+            background: #667eea;
+            border: none;
+            color: white;
+            padding: 8px 16px;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+        
+        .export-btn:hover {
+            background: #5568d3;
+        }
+    </style>
+</head>
+<body>
+    <div class="container-fluid">
+        <!-- 头部 -->
+        <div class="dashboard-header">
+            <h1>📊 成本仪表板</h1>
+            <p>OpenClaw Harness 使用成本追踪与分析</p>
+            <div class="mt-3">
+                <button class="export-btn" onclick="exportCSV()">📥 导出 CSV</button>
+                <button class="export-btn" style="margin-left: 10px;" onclick="exportJSON()">📥 导出 JSON</button>
+            </div>
+        </div>
+        
+        <!-- 统计卡片 -->
+        <div class="row mb-4">
+            <div class="col-md-3">
+                <div class="stat-card">
+                    <div class="stat-value" id="totalCost">$0.00</div>
+                    <div class="stat-label">总成本</div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="stat-card">
+                    <div class="stat-value" id="totalTokens">0</div>
+                    <div class="stat-label">总 Tokens</div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="stat-card">
+                    <div class="stat-value" id="totalCalls">0</div>
+                    <div class="stat-label">总调用次数</div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="stat-card">
+                    <div class="stat-value" id="avgCost">$0.00</div>
+                    <div class="stat-label">平均成本/调用</div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- 预算监控 -->
+        <div class="row mb-4">
+            <div class="col-md-12">
+                <div class="chart-container">
+                    <h5>💰 预算监控</h5>
+                    <div id="budgetCards"></div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- 图表 -->
+        <div class="row">
+            <div class="col-md-6">
+                <div class="chart-container">
+                    <h5>📊 提供商分布</h5>
+                    <canvas id="providerChart"></canvas>
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="chart-container">
+                    <h5>📈 成本趋势（最近 30 天）</h5>
+                    <canvas id="trendChart"></canvas>
+                </div>
+            </div>
+        </div>
+        
+        <div class="row mt-4">
+            <div class="col-md-6">
+                <div class="chart-container">
+                    <h5>🤖 模型使用分布</h5>
+                    <canvas id="modelChart"></canvas>
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="chart-container">
+                    <h5>⚠️ 告警</h5>
+                    <div id="alertList">
+                        <p style="color: #6c757d;">无告警</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- 预测 -->
+        <div class="row mt-4">
+            <div class="col-md-12">
+                <div class="chart-container">
+                    <h5>🔮 成本预测</h5>
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="stat-card">
+                                <div class="stat-value" id="monthlyPrediction">$0.00</div>
+                                <div class="stat-label">预计月成本</div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="stat-card">
+                                <div class="stat-value" id="yearlyPrediction">$0.00</div>
+                                <div class="stat-label">预计年成本</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        // API 基础 URL
+        const API_BASE = 'http://localhost:8000/api/costs';
+        
+        // 图表实例
+        let providerChart, modelChart, trendChart;
+        
+        // 加载仪表板数据
+        async function loadDashboard() {
+            try {
+                // 加载摘要
+                const summaryRes = await fetch(`${API_BASE}/summary`);
+                const summaryData = await summaryRes.json();
+                updateSummary(summaryData);
+                
+                // 加载图表数据
+                const chartsRes = await fetch(`${API_BASE}/charts/usage`);
+                const chartsData = await chartsRes.json();
+                updateCharts(chartsData);
+                
+                // 加载预算
+                const budgetsRes = await fetch(`${API_BASE}/budgets`);
+                const budgetsData = await budgetsRes.json();
+                updateBudgets(budgetsData);
+                
+                // 加载告警
+                const alertsRes = await fetch(`${API_BASE}/alerts`);
+                const alertsData = await alertsRes.json();
+                updateAlerts(alertsData);
+            } catch (error) {
+                console.error('加载数据失败:', error);
+            }
+        }
+        
+        // 更新摘要
+        function updateSummary(data) {
+            const summary = data.summary;
+            
+            document.getElementById('totalCost').textContent = `$${summary.total_cost.toFixed(4)}`;
+            document.getElementById('totalTokens').textContent = summary.total_tokens.toLocaleString();
+            document.getElementById('totalCalls').textContent = summary.total_calls.toLocaleString();
+            document.getElementById('avgCost').textContent = `$${summary.avg_cost_per_call.toFixed(6)}`;
+        }
+        
+        // 更新图表
+        function updateCharts(data) {
+            // 提供商分布（饼图）
+            const providerCtx = document.getElementById('providerChart').getContext('2d');
+            providerChart = new Chart(providerCtx, {
+                type: 'doughnut',
+                data: {
+                    labels: data.provider_distribution.map(d => d.name),
+                    datasets: [{
+                        data: data.provider_distribution.map(d => d.value),
+                        backgroundColor: [
+                            '#667eea',
+                            '#764ba2',
+                            '#f093fb',
+                            '#f5576c',
+                            '#4facfe'
+                        ]
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    plugins: {
+                        legend: {
+                            position: 'bottom'
+                        }
+                    }
+                }
+            });
+            
+            // 成本趋势（折线图）
+            const trendCtx = document.getElementById('trendChart').getContext('2d');
+            trendChart = new Chart(trendCtx, {
+                type: 'line',
+                data: {
+                    labels: data.cost_trend.map(d => d.date),
+                    datasets: [{
+                        label: '成本 ($)',
+                        data: data.cost_trend.map(d => d.cost),
+                        borderColor: '#667eea',
+                        backgroundColor: 'rgba(102, 126, 234, 0.1)',
+                        fill: true,
+                        tension: 0.4
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    plugins: {
+                        legend: {
+                            display: false
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true
+                        }
+                    }
+                }
+            });
+            
+            // 模型使用（条形图）
+            const modelCtx = document.getElementById('modelChart').getContext('2d');
+            modelChart = new Chart(modelCtx, {
+                type: 'bar',
+                data: {
+                    labels: data.model_distribution.slice(0, 5).map(d => d.model),
+                    datasets: [{
+                        label: '成本 ($)',
+                        data: data.model_distribution.slice(0, 5).map(d => d.cost),
+                        backgroundColor: '#764ba2'
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    plugins: {
+                        legend: {
+                            display: false
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true
+                        }
+                    }
+                }
+            });
+            
+            // 更新预测
+            document.getElementById('monthlyPrediction').textContent = `$${data.predictions.monthly.toFixed(2)}`;
+            document.getElementById('yearlyPrediction').textContent = `$${data.predictions.yearly.toFixed(2)}`;
+        }
+        
+        // 更新预算
+        function updateBudgets(data) {
+            const container = document.getElementById('budgetCards');
+            container.innerHTML = '';
+            
+            for (const [period, info] of Object.entries(data.budgets)) {
+                const percentage = info.percentage;
+                const statusClass = percentage >= 100 ? 'bg-danger' : (percentage >= 80 ? 'bg-warning' : 'bg-success');
+                
+                const card = document.createElement('div');
+                card.className = 'mb-3';
+                card.innerHTML = `
+                    <div class="d-flex justify-content-between align-items-center mb-2">
+                        <span>${period.charAt(0).toUpperCase() + period.slice(1)} 预算</span>
+                        <span class="text-muted">${info.percentage.toFixed(1)}%</span>
+                    </div>
+                    <div class="progress budget-progress">
+                        <div class="progress-bar budget-progress-bar ${statusClass}" 
+                             style="width: ${Math.min(percentage, 100)}%"></div>
+                    </div>
+                    <div class="d-flex justify-content-between mt-1">
+                        <small class="text-muted">$${info.current.toFixed(4)} / $${info.limit.toFixed(2)}</small>
+                        <small class="text-muted">剩余: $${info.remaining.toFixed(4)}</small>
+                    </div>
+                `;
+                container.appendChild(card);
+            }
+        }
+        
+        // 更新告警
+        function updateAlerts(alerts) {
+            const container = document.getElementById('alertList');
+            
+            if (alerts.length === 0) {
+                container.innerHTML = '<p style="color: #6c757d;">✓ 无告警</p>';
+                return;
+            }
+            
+            container.innerHTML = '';
+            alerts.forEach(alert => {
+                const alertDiv = document.createElement('div');
+                alertDiv.className = `alert-item ${alert.type === 'critical' ? 'critical' : ''}`;
+                alertDiv.innerHTML = `
+                    <strong>${alert.type === 'critical' ? '🔴' : '⚠️'} ${alert.period}</strong><br>
+                    ${alert.message}
+                `;
+                container.appendChild(alertDiv);
+            });
+        }
+        
+        // 导出 CSV
+        function exportCSV() {
+            window.location.href = `${API_BASE}/export/csv`;
+        }
+        
+        // 导出 JSON
+        function exportJSON() {
+            window.location.href = `${API_BASE}/export/json`;
+        }
+        
+        // 初始化
+        loadDashboard();
+        
+        // 定期刷新（每 30 秒）
+        setInterval(loadDashboard, 30000);
+    </script>
+</body>
+</html>

@@ -133,7 +133,13 @@ class CostTracker:
         
         return record
     
-    def get_stats(
+    def get_recent(self, hours: int = 24) -> List[UsageRecord]:
+        """获取最近的使用记录"""
+        cutoff = datetime.now() - timedelta(hours=hours)
+        return [
+            r for r in self.records
+            if datetime.fromisoformat(r.timestamp) >= cutoff
+        ]
         self,
         start_date: Optional[str] = None,
         end_date: Optional[str] = None,
