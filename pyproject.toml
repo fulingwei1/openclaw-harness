@@ -30,6 +30,11 @@ aiohttp = "^3.9"
 httpx = "^0.26"
 # Vector Search
 numpy = "^1.24"
+# LangChain
+langchain-core = "^0.1"
+langchain-openai = "^0.1"
+langchain-anthropic = "^0.1"
+langchain = "^0.1"
 
 [tool.poetry.group.dev.dependencies]
 pytest = "^8.0"

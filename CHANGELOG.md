@@ -7,6 +7,92 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added - v0.4.0 (2026-04-08)
+
+#### 🔗 Integrations
+
+- **LangChain Integration** - Workflow and tool chains
+  - Code generation chain
+  - Code evaluation chain
+  - Code refactoring chain
+  - Tool-enabled harness
+  - Predefined workflows
+  - Base tools (Generator, Evaluator, Search)
+
+- **VS Code Extension** - IDE integration
+  - Code generation from description
+  - Code evaluation and feedback
+  - Code explanation viewer
+  - Automatic refactoring
+  - Semantic code search
+  - Context menu integration
+  - Keyboard shortcuts (Ctrl+Alt+G, Ctrl+Alt+E)
+  - Webview panels for results
+
+#### 🎯 Features
+
+- **Workflows**
+  - Full development workflow
+  - Generate and review workflow
+  - Search and adapt workflow
+
+- **VS Code Commands**
+  - `harness.generate` - Generate code
+  - `harness.evaluate` - Evaluate code
+  - `harness.explain` - Explain code
+  - `harness.refactor` - Refactor code
+  - `harness.search` - Search similar code
+
+- **Tools**
+  - CodeGeneratorTool
+  - CodeEvaluatorTool
+  - CodeSearchTool
+
+### Added - v0.3.0 (2026-04-08)
+
+#### 🔍 Advanced Capabilities
+
+- **Vector Search** - Code semantic search with embeddings
+  - OpenAI text-embedding-3-small integration
+  - Cosine similarity matching
+  - Code snippet indexing
+  - Directory-wide indexing
+  - Multi-language support (Python, JS/TS, Java, Go, Rust)
+  - Persistent vector storage
+
+- **Cost Tracking** - LLM usage analytics
+  - Real-time cost tracking per request
+  - Support for OpenAI, Anthropic, z.ai, Kimi, MiniMax
+  - Budget management with alerts
+  - Cost reports by provider/model/date
+  - CSV/JSON export
+  - Historical usage analysis
+
+- **Plugin System** - Extensible architecture
+  - Plugin base class with lifecycle hooks
+  - 8 hook types (before/after generate/evaluate/plan, error, success)
+  - Plugin discovery and auto-loading
+  - Example plugins (Metrics, Example)
+  - Plugin CLI for management
+
+#### 📊 Features
+
+- **Code Indexer**
+  - Automatic code splitting (functions/classes)
+  - Language-specific parsers
+  - Batch indexing for repositories
+
+- **Budget Manager**
+  - Daily/weekly/monthly budgets
+  - Warning alerts at 80%
+  - Critical alerts at 100%
+  - Budget status API
+
+- **Pricing Configuration**
+  - Pre-configured pricing for major providers
+  - Automatic cost calculation
+  - Easy to update pricing data
+
 ### Added - v0.2.0 (2026-04-08)
 
 #### 🚀 Performance & UX Enhancements

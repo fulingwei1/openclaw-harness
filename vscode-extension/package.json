@@ -1,0 +1,127 @@
+{
+  "name": "openclaw-harness",
+  "displayName": "OpenClaw Harness",
+  "description": "AI-powered code generation and evaluation",
+  "version": "0.3.0",
+  "publisher": "openclaw",
+  "engines": {
+    "vscode": "^1.85.0"
+  },
+  "categories": [
+    "Programming Languages",
+    "Machine Learning",
+    "Snippets"
+  ],
+  "activationEvents": [
+    "onCommand:harness.generate",
+    "onCommand:harness.evaluate",
+    "onCommand:harness.explain"
+  ],
+  "main": "./extension.js",
+  "contributes": {
+    "commands": [
+      {
+        "command": "harness.generate",
+        "title": "Harness: Generate Code"
+      },
+      {
+        "command": "harness.evaluate",
+        "title": "Harness: Evaluate Code"
+      },
+      {
+        "command": "harness.explain",
+        "title": "Harness: Explain Code"
+      },
+      {
+        "command": "harness.refactor",
+        "title": "Harness: Refactor Code"
+      },
+      {
+        "command": "harness.search",
+        "title": "Harness: Search Similar Code"
+      }
+    ],
+    "keybindings": [
+      {
+        "command": "harness.generate",
+        "key": "ctrl+alt+g",
+        "mac": "cmd+alt+g"
+      },
+      {
+        "command": "harness.evaluate",
+        "key": "ctrl+alt+e",
+        "mac": "cmd+alt+e"
+      }
+    ],
+    "menus": {
+      "editor/context": [
+        {
+          "command": "harness.generate",
+          "group": "harness@1"
+        },
+        {
+          "command": "harness.evaluate",
+          "group": "harness@2"
+        },
+        {
+          "command": "harness.explain",
+          "when": "editorHasSelection",
+          "group": "harness@3"
+        }
+      ]
+    },
+    "configuration": {
+      "title": "OpenClaw Harness",
+      "properties": {
+        "harness.provider": {
+          "type": "string",
+          "default": "openai",
+          "enum": ["openai", "anthropic", "zai", "kimi"],
+          "description": "LLM provider"
+        },
+        "harness.model": {
+          "type": "string",
+          "default": "gpt-4",
+          "description": "Model to use"
+        },
+        "harness.apiKey": {
+          "type": "string",
+          "default": "",
+          "description": "API key for the provider"
+        },
+        "harness.autoEvaluate": {
+          "type": "boolean",
+          "default": false,
+          "description": "Automatically evaluate generated code"
+        },
+        "harness.evaluatorThreshold": {
+          "type": "number",
+          "default": 0.9,
+          "description": "Evaluation threshold"
+        }
+      }
+    }
+  },
+  "scripts": {
+    "vscode:prepublish": "npm run compile",
+    "compile": "tsc -p ./",
+    "watch": "tsc -watch -p ./",
+    "pretest": "npm run compile && npm run lint",
+    "lint": "eslint src --ext ts"
+  },
+  "devDependencies": {
+    "@types/node": "^20",
+    "@types/vscode": "^1.85",
+    "@typescript-eslint/eslint-plugin": "^6",
+    "@typescript-eslint/parser": "^6",
+    "eslint": "^8",
+    "typescript": "^5"
+  },
+  "dependencies": {
+    "axios": "^1.6"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/fulingwei1/openclaw-harness"
+  }
+}
