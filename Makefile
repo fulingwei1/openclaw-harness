@@ -60,5 +60,17 @@ demo: ## 运行演示
 	poetry run harness init
 	@echo "✓ Harness initialized. Try: poetry run harness run '创建一个 REST API'"
 
+web: ## 启动 Web UI
+	poetry run python run_web.py
+
+web-dev: ## 启动开发服务器（热重载）
+	poetry run uvicorn run_web:app --reload --host 0.0.0.0 --port 8000
+
+docker-build: ## 构建 Docker 镜像
+	docker build -t openclaw-harness:latest .
+
+docker-run: ## 运行 Docker 容器
+	docker run -p 8000:8000 openclaw-harness:latest
+
 version: ## 显示版本
 	@poetry version
