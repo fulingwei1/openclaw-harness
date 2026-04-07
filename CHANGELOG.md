@@ -7,6 +7,70 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added - v0.6.0 (2026-04-08)
+
+#### 🤖 Agent Collaboration Dashboard
+
+- **Agent Orchestration** - Real-time monitoring
+  - Agent status tracking
+  - Task assignment
+  - Performance metrics
+  - Activity logging
+
+- **Collaboration Network** - Visual network graph
+  - Interactive D3.js visualization
+  - Node size = activity level
+  - Edge weight = collaboration frequency
+  - Drag and zoom support
+
+- **Evolution Tracking** - Agent learning progress
+  - Evolution history
+  - Generation tracking
+  - Performance improvements
+  - Improvement details
+
+- **Performance Analytics** - Visual analytics
+  - Agent performance comparison
+  - Evolution trend
+  - Collaboration matrix
+  - Efficiency metrics
+
+- **Dashboard Features**
+  - Overview cards (total agents, active, collaborations, evolutions)
+  - Agent status list with performance bars
+  - Real-time activity feed
+  - Auto-refresh (5 seconds)
+  - Modern responsive design
+
+- **API Endpoints**
+  - `GET /api/agents/overview` - Overview stats
+  - `GET /api/agents/agents` - List all agents
+  - `GET /api/agents/agents/{id}` - Agent details
+  - `POST /api/agents/agents` - Create agent
+  - `PATCH /api/agents/agents/{id}/status` - Update status
+  - `GET /api/agents/collaborations` - Collaboration history
+  - `GET /api/agents/network` - Network graph data
+  - `GET /api/agents/evolutions` - Evolution history
+  - `POST /api/agents/evolutions` - Record evolution
+  - `GET /api/agents/activities` - Recent activities
+  - `GET /api/agents/charts/performance` - Performance charts
+
+#### 🎨 UI/UX
+
+- **Agent Dashboard Page**
+  - Gradient header (green theme)
+  - Interactive network graph (D3.js)
+  - Performance comparison charts (Chart.js)
+  - Evolution timeline
+  - Activity log with type indicators
+  - Auto-refresh toggle
+
+- **Visualizations**
+  - Network graph with force simulation
+  - Performance bars with gradients
+  - Status badges (color-coded)
+  - Evolution items with improvements
+
 ### Added - v0.5.0 (2026-04-08)
 
 #### 📊 Analytics & Visualization

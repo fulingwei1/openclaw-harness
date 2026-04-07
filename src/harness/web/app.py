@@ -11,6 +11,7 @@ import uvicorn
 # 导入路由
 from .routes import generate, progress
 from .cost_dashboard import router as cost_router
+from .agent_dashboard import router as agent_router
 
 # 创建应用
 app = FastAPI(
@@ -38,6 +39,7 @@ templates = Jinja2Templates(directory="templates")
 app.include_router(generate.router)
 app.include_router(progress.router)
 app.include_router(cost_router)
+app.include_router(agent_router)
 
 
 @app.get("/", response_class=HTMLResponse)
@@ -50,6 +52,12 @@ async def root(request: Request):
 async def dashboard(request: Request):
     """成本仪表板"""
     return templates.TemplateResponse("cost_dashboard.html", {"request": request})
+
+
+@app.get("/agents", response_class=HTMLResponse)
+async def agents_dashboard(request: Request):
+    """Agent 协作仪表板"""
+    return templates.TemplateResponse("agent_dashboard.html", {"request": request})
 
 
 @app.get("/health")

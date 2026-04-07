@@ -1,0 +1,536 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>OpenClaw Harness - Agent 协作仪表盘</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+    <script src="https://d3js.org/d3.v7.min.js"></script>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: #f5f7fa;
+            padding: 20px;
+        }
+        
+        .dashboard-header {
+            background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);
+            color: white;
+            padding: 30px;
+            border-radius: 10px;
+            margin-bottom: 30px;
+        }
+        
+        .stat-card {
+            background: white;
+            border-radius: 10px;
+            padding: 20px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+            transition: transform 0.2s;
+        }
+        
+        .stat-card:hover {
+            transform: translateY(-5px);
+        }
+        
+        .stat-card .stat-value {
+            font-size: 32px;
+            font-weight: bold;
+            color: #11998e;
+        }
+        
+        .stat-card .stat-label {
+            color: #6c757d;
+            font-size: 14px;
+        }
+        
+        .chart-container {
+            background: white;
+            border-radius: 10px;
+            padding: 20px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+            margin-bottom: 20px;
+        }
+        
+        .agent-card {
+            background: white;
+            border-radius: 8px;
+            padding: 15px;
+            margin-bottom: 15px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+            border-left: 4px solid #11998e;
+        }
+        
+        .agent-card.running {
+            border-left-color: #ffc107;
+        }
+        
+        .agent-card.idle {
+            border-left-color: #6c757d;
+        }
+        
+        .agent-card.completed {
+            border-left-color: #28a745;
+        }
+        
+        .agent-card.failed {
+            border-left-color: #dc3545;
+        }
+        
+        .status-badge {
+            display: inline-block;
+            padding: 4px 12px;
+            border-radius: 12px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+        
+        .status-badge.running {
+            background: #fff3cd;
+            color: #856404;
+        }
+        
+        .status-badge.idle {
+            background: #e7e7e7;
+            color: #6c757d;
+        }
+        
+        .status-badge.completed {
+            background: #d4edda;
+            color: #155724;
+        }
+        
+        .activity-item {
+            padding: 10px;
+            border-left: 3px solid #11998e;
+            margin-bottom: 10px;
+            background: white;
+            border-radius: 4px;
+        }
+        
+        .activity-item.collaboration {
+            border-left-color: #38ef7d;
+        }
+        
+        .activity-item.evolution {
+            border-left-color: #667eea;
+        }
+        
+        #network-graph {
+            width: 100%;
+            height: 400px;
+            background: white;
+            border-radius: 10px;
+        }
+        
+        .evolution-item {
+            padding: 15px;
+            background: white;
+            border-radius: 8px;
+            margin-bottom: 10px;
+            border-left: 4px solid #667eea;
+        }
+        
+        .performance-bar {
+            height: 20px;
+            background: #e9ecef;
+            border-radius: 10px;
+            overflow: hidden;
+        }
+        
+        .performance-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #11998e, #38ef7d);
+            transition: width 0.5s ease;
+        }
+    </style>
+</head>
+<body>
+    <div class="container-fluid">
+        <!-- 头部 -->
+        <div class="dashboard-header">
+            <h1>🤖 Agent 协作仪表盘</h1>
+            <p>实时监控 Agent 协作与进化过程</p>
+            <div class="mt-3">
+                <button class="btn btn-light" onclick="refreshData()">🔄 刷新数据</button>
+                <button class="btn btn-light" style="margin-left: 10px;" onclick="toggleAutoRefresh()">
+                    <span id="autoRefreshLabel">▶️ 启动自动刷新</span>
+                </button>
+            </div>
+        </div>
+        
+        <!-- 统计卡片 -->
+        <div class="row mb-4">
+            <div class="col-md-3">
+                <div class="stat-card">
+                    <div class="stat-value" id="totalAgents">0</div>
+                    <div class="stat-label">总 Agent 数</div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="stat-card">
+                    <div class="stat-value" id="activeAgents">0</div>
+                    <div class="stat-label">活跃 Agent</div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="stat-card">
+                    <div class="stat-value" id="totalCollaborations">0</div>
+                    <div class="stat-label">协作次数</div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="stat-card">
+                    <div class="stat-value" id="totalEvolutions">0</div>
+                    <div class="stat-label">进化次数</div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Agent 列表 -->
+        <div class="row mb-4">
+            <div class="col-md-12">
+                <div class="chart-container">
+                    <h5>🤖 Agent 状态</h5>
+                    <div id="agentList"></div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- 协作网络图 -->
+        <div class="row mb-4">
+            <div class="col-md-12">
+                <div class="chart-container">
+                    <h5>🕸️ 协作网络</h5>
+                    <svg id="network-graph"></svg>
+                    <p class="text-muted mt-2">节点大小 = 活跃度，连线粗细 = 协作频率</p>
+                </div>
+            </div>
+        </div>
+        
+        <!-- 图表 -->
+        <div class="row">
+            <div class="col-md-6">
+                <div class="chart-container">
+                    <h5>📊 Agent 性能对比</h5>
+                    <canvas id="performanceChart"></canvas>
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="chart-container">
+                    <h5>📈 进化趋势</h5>
+                    <canvas id="evolutionChart"></canvas>
+                </div>
+            </div>
+        </div>
+        
+        <!-- 进化历史 -->
+        <div class="row mt-4">
+            <div class="col-md-6">
+                <div class="chart-container">
+                    <h5>🧬 进化历史</h5>
+                    <div id="evolutionHistory"></div>
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="chart-container">
+                    <h5>📋 最近活动</h5>
+                    <div id="activityLog"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        const API_BASE = 'http://localhost:8000/api/agents';
+        let autoRefresh = false;
+        let refreshInterval;
+        let performanceChart, evolutionChart;
+        
+        // 加载仪表板数据
+        async function loadDashboard() {
+            try {
+                const response = await fetch(`${API_BASE}/overview`);
+                const data = await response.json();
+                
+                updateStats(data.stats);
+                updateAgentList(data.network.nodes);
+                updateNetworkGraph(data.network);
+                updateRecentActivities(data.recent_activities);
+                
+                // 加载图表
+                await loadCharts();
+                await loadEvolutionHistory();
+            } catch (error) {
+                console.error('加载数据失败:', error);
+            }
+        }
+        
+        // 更新统计
+        function updateStats(stats) {
+            document.getElementById('totalAgents').textContent = stats.total_agents;
+            document.getElementById('activeAgents').textContent = stats.active_agents;
+            document.getElementById('totalCollaborations').textContent = stats.total_collaborations;
+            document.getElementById('totalEvolutions').textContent = stats.total_evolutions;
+        }
+        
+        // 更新 Agent 列表
+        function updateAgentList(agents) {
+            const container = document.getElementById('agentList');
+            container.innerHTML = '';
+            
+            agents.forEach(agent => {
+                const card = document.createElement('div');
+                card.className = `agent-card ${agent.status}`;
+                card.innerHTML = `
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h6>${agent.name}</h6>
+                            <p class="mb-1 text-muted">${agent.type}</p>
+                            ${agent.current_task ? `<small>任务: ${agent.current_task}</small>` : ''}
+                        </div>
+                        <div>
+                            <span class="status-badge ${agent.status}">${agent.status}</span>
+                        </div>
+                    </div>
+                    <div class="mt-2">
+                        <div class="performance-bar">
+                            <div class="performance-fill" style="width: ${agent.performance.efficiency * 100}%"></div>
+                        </div>
+                        <small class="text-muted">效率: ${(agent.performance.efficiency * 100).toFixed(0)}%</small>
+                    </div>
+                `;
+                container.appendChild(card);
+            });
+        }
+        
+        // 更新协作网络图
+        function updateNetworkGraph(network) {
+            const svg = d3.select("#network-graph");
+            const width = 800;
+            const height = 400;
+            
+            svg.selectAll("*").remove();
+            svg.attr("width", width).attr("height", height);
+            
+            // 创建仿真
+            const simulation = d3.forceSimulation(network.nodes)
+                .force("link", d3.forceLink(network.edges).id(d => d.id).distance(150))
+                .force("charge", d3.forceManyBody().strength(-300))
+                .force("center", d3.forceCenter(width / 2, height / 2));
+            
+            // 绘制连线
+            const link = svg.append("g")
+                .selectAll("line")
+                .data(network.edges)
+                .enter().append("line")
+                .attr("stroke", "#999")
+                .attr("stroke-opacity", 0.6)
+                .attr("stroke-width", d => Math.sqrt(d.weight));
+            
+            // 绘制节点
+            const node = svg.append("g")
+                .selectAll("circle")
+                .data(network.nodes)
+                .enter().append("circle")
+                .attr("r", d => 10 + d.performance.efficiency * 20)
+                .attr("fill", d => {
+                    const colors = {
+                        "generator": "#667eea",
+                        "evaluator": "#764ba2",
+                        "planner": "#11998e",
+                        "optimizer": "#f093fb"
+                    };
+                    return colors[d.type] || "#999";
+                })
+                .call(d3.drag()
+                    .on("start", dragstarted)
+                    .on("drag", dragged)
+                    .on("end", dragended));
+            
+            // 添加标签
+            const label = svg.append("g")
+                .selectAll("text")
+                .data(network.nodes)
+                .enter().append("text")
+                .text(d => d.name)
+                .attr("font-size", 12)
+                .attr("dx", 12)
+                .attr("dy", 4);
+            
+            // 更新位置
+            simulation.on("tick", () => {
+                link
+                    .attr("x1", d => d.source.x)
+                    .attr("y1", d => d.source.y)
+                    .attr("x2", d => d.target.x)
+                    .attr("y2", d => d.target.y);
+                
+                node
+                    .attr("cx", d => d.x)
+                    .attr("cy", d => d.y);
+                
+                label
+                    .attr("x", d => d.x)
+                    .attr("y", d => d.y);
+            });
+            
+            function dragstarted(event, d) {
+                if (!event.active) simulation.alphaTarget(0.3).restart();
+                d.fx = d.x;
+                d.fy = d.y;
+            }
+            
+            function dragged(event, d) {
+                d.fx = event.x;
+                d.fy = event.y;
+            }
+            
+            function dragended(event, d) {
+                if (!event.active) simulation.alphaTarget(0);
+                d.fx = null;
+                d.fy = null;
+            }
+        }
+        
+        // 加载图表
+        async function loadCharts() {
+            const response = await fetch(`${API_BASE}/charts/performance`);
+            const data = await response.json();
+            
+            // 性能对比图
+            const perfCtx = document.getElementById('performanceChart').getContext('2d');
+            if (performanceChart) performanceChart.destroy();
+            
+            performanceChart = new Chart(perfCtx, {
+                type: 'bar',
+                data: {
+                    labels: data.agent_performance.map(d => d.agent),
+                    datasets: [{
+                        label: '效率',
+                        data: data.agent_performance.map(d => d.efficiency * 100),
+                        backgroundColor: '#11998e'
+                    }, {
+                        label: '成功率',
+                        data: data.agent_performance.map(d => d.success_rate * 100),
+                        backgroundColor: '#38ef7d'
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    scales: {
+                        y: { beginAtZero: true, max: 100 }
+                    }
+                }
+            });
+            
+            // 进化趋势图
+            const evoCtx = document.getElementById('evolutionChart').getContext('2d');
+            if (evolutionChart) evolutionChart.destroy();
+            
+            evolutionChart = new Chart(evoCtx, {
+                type: 'line',
+                data: {
+                    labels: data.evolution_trend.map(d => d.timestamp.substring(0, 10)),
+                    datasets: [{
+                        label: '性能提升',
+                        data: data.evolution_trend.map(d => d.performance_delta * 100),
+                        borderColor: '#667eea',
+                        fill: false
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    scales: {
+                        y: { beginAtZero: true }
+                    }
+                }
+            });
+        }
+        
+        // 加载进化历史
+        async function loadEvolutionHistory() {
+            const response = await fetch(`${API_BASE}/evolutions`);
+            const evolutions = await response.json();
+            
+            const container = document.getElementById('evolutionHistory');
+            container.innerHTML = '';
+            
+            evolutions.slice(0, 5).forEach(evo => {
+                const item = document.createElement('div');
+                item.className = 'evolution-item';
+                item.innerHTML = `
+                    <div class="d-flex justify-content-between">
+                        <strong>Agent: ${evo.agent_id}</strong>
+                        <span class="badge bg-primary">Gen ${evo.generation}</span>
+                    </div>
+                    <ul class="mt-2 mb-0">
+                        ${evo.improvements.map(imp => `<li>${imp}</li>`).join('')}
+                    </ul>
+                    <small class="text-muted">性能提升: +${(evo.performance_delta * 100).toFixed(1)}%</small>
+                `;
+                container.appendChild(item);
+            });
+        }
+        
+        // 更新最近活动
+        function updateRecentActivities(activities) {
+            const container = document.getElementById('activityLog');
+            container.innerHTML = '';
+            
+            activities.forEach(activity => {
+                const item = document.createElement('div');
+                item.className = `activity-item ${activity.type}`;
+                
+                let content = '';
+                if (activity.type === 'agent_activity') {
+                    content = `
+                        <strong>${activity.agent_name}</strong> ${activity.status}
+                        ${activity.task ? `- ${activity.task}` : ''}
+                    `;
+                } else if (activity.type === 'collaboration') {
+                    content = `
+                        🤝 <strong>${activity.from_agent}</strong> → <strong>${activity.to_agent}</strong>
+                        <br><small>${activity.task}</small>
+                    `;
+                } else if (activity.type === 'evolution') {
+                    content = `
+                        🧬 <strong>${activity.agent_id}</strong> 进化到第 ${activity.generation} 代
+                        <br><small>+${(activity.performance_delta * 100).toFixed(1)}%</small>
+                    `;
+                }
+                
+                item.innerHTML = `
+                    ${content}
+                    <br><small class="text-muted">${new Date(activity.timestamp).toLocaleString()}</small>
+                `;
+                container.appendChild(item);
+            });
+        }
+        
+        // 刷新数据
+        function refreshData() {
+            loadDashboard();
+        }
+        
+        // 切换自动刷新
+        function toggleAutoRefresh() {
+            autoRefresh = !autoRefresh;
+            
+            const label = document.getElementById('autoRefreshLabel');
+            
+            if (autoRefresh) {
+                label.textContent = '⏸️ 停止自动刷新';
+                refreshInterval = setInterval(loadDashboard, 5000);
+            } else {
+                label.textContent = '▶️ 启动自动刷新';
+                clearInterval(refreshInterval);
+            }
+        }
+        
+        // 初始化
+        loadDashboard();
+    </script>
+</body>
+</html>
