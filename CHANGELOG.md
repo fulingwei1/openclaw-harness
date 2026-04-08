@@ -7,6 +7,67 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added - v0.7.0 (2026-04-08)
+
+#### 🔌 WebSocket Real-time Communication
+
+- **WebSocket Manager** - Real-time push
+  - Connection management
+  - Channel subscription (agents/costs/evolutions/tasks/all)
+  - Auto-reconnect support
+  - Heartbeat mechanism
+  - Broadcast messages
+
+- **Real-time Events**
+  - Agent status updates
+  - Cost updates
+  - Evolution events
+  - Task progress
+  - System notifications
+
+- **WebSocket Endpoint**
+  - `ws://localhost:8000/ws` - Main WebSocket
+  - Subscribe: `{"action": "subscribe", "channel": "agents"}`
+  - Unsubscribe: `{"action": "unsubscribe", "channel": "agents"}`
+  - Ping: `{"action": "ping"}`
+
+- **Integration** - Dashboard integration
+  - Cost dashboard auto-refresh via WebSocket
+  - Agent dashboard real-time updates
+  - Live activity feed
+  - Progress notifications
+
+#### 📓 Jupyter Notebook Support
+
+- **Jupyter Extension** - Magic commands
+  - `%harness_init` - Initialize Harness
+  - `%harness_config` - Configure settings
+  - `%%harness_generate` - Generate code
+  - `%%harness_evaluate` - Evaluate code
+  - `%harness_cost` - View costs
+  - `%harness_agents` - View agents
+  - `%harness_plot` - Plot charts
+
+- **Output Formats** - Multiple formats
+  - HTML (default) - Card layout with syntax highlighting
+  - JSON - Raw data for programmatic use
+  - Text - Plain text for logging
+
+- **Visualization** - Rich output
+  - Code blocks with syntax highlighting
+  - Evaluation scores with color coding
+  - Cost statistics cards
+  - Agent status cards
+  - Interactive plots (Plotly)
+
+- **Documentation** - Complete guide
+  - Installation instructions
+  - Quick start guide
+  - Magic command reference
+  - Example workflows
+  - Best practices
+  - Troubleshooting
+
 ### Added - v0.6.0 (2026-04-08)
 
 #### 🤖 Agent Collaboration Dashboard

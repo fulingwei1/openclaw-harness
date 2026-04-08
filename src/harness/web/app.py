@@ -12,6 +12,7 @@ import uvicorn
 from .routes import generate, progress
 from .cost_dashboard import router as cost_router
 from .agent_dashboard import router as agent_router
+from .websocket_manager import websocket_endpoint
 
 # 创建应用
 app = FastAPI(
@@ -58,6 +59,12 @@ async def dashboard(request: Request):
 async def agents_dashboard(request: Request):
     """Agent 协作仪表板"""
     return templates.TemplateResponse("agent_dashboard.html", {"request": request})
+
+
+@app.websocket("/ws")
+async def websocket_route(websocket: WebSocket):
+    """WebSocket 实时通信"""
+    await websocket_endpoint(websocket)
 
 
 @app.get("/health")
